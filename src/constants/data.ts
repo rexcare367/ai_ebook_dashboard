@@ -11,6 +11,28 @@ export type Product = {
   updated_at: string;
 };
 
+export type Admin = {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  role: string;
+  createdAt: string;
+  school: string;
+  updatedAt: string;
+  last_login: string | null;
+};
+
+export type School = {
+  id: string;
+  name: string;
+  state: string;
+  city: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
@@ -19,7 +41,8 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
-    items: [] // Empty array as there are no child items for Dashboard
+    items: [], // Empty array as there are no child items for Dashboard
+    permission: ['admin', 'school_manager']
   },
   {
     title: 'Product',
@@ -27,28 +50,60 @@ export const navItems: NavItem[] = [
     icon: 'product',
     shortcut: ['p', 'p'],
     isActive: false,
-    items: [] // No child items
+    items: [],
+    permission: ['demo']
+  },
+  {
+    title: 'Admins',
+    url: '/dashboard/admin',
+    icon: 'user',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [],
+    permission: ['admin']
+  },
+  {
+    title: 'Schools',
+    url: '/dashboard/schools',
+    icon: 'school',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [],
+    permission: ['admin']
+  },
+  {
+    title: 'School Statistics',
+    url: '/dashboard/school_statistics',
+    icon: 'user',
+    shortcut: ['s', 's'],
+    isActive: false,
+    items: [],
+    permission: ['school_manager']
+  },
+  {
+    title: 'User',
+    url: '/dashboard/students',
+    icon: 'user',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [],
+    permission: ['admin', 'school_manager']
   },
   {
     title: 'Account',
     url: '#', // Placeholder as there is no direct link for the parent
     icon: 'billing',
     isActive: true,
-
     items: [
       {
         title: 'Profile',
         url: '/dashboard/profile',
         icon: 'userPen',
-        shortcut: ['m', 'm']
-      },
-      {
-        title: 'Login',
-        shortcut: ['l', 'l'],
-        url: '/',
-        icon: 'login'
+        shortcut: ['m', 'm'],
+        permission: ['admin', 'school_manager']
       }
-    ]
+    ],
+    permission: ['admin', 'school_manager']
   },
   {
     title: 'Kanban',
@@ -56,7 +111,8 @@ export const navItems: NavItem[] = [
     icon: 'kanban',
     shortcut: ['k', 'k'],
     isActive: false,
-    items: [] // No child items
+    items: [],
+    permission: ['demo']
   }
 ];
 

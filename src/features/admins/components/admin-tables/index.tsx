@@ -7,19 +7,17 @@ import { useDataTable } from '@/hooks/use-data-table';
 
 import { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
-import { useUserStore } from '@/utils/user-store';
-interface ProductTableParams<TData, TValue> {
+
+interface AdminTableParams<TData, TValue> {
   data: TData[];
   totalItems: number;
   columns: ColumnDef<TData, TValue>[];
 }
-export function ProductTable<TData, TValue>({
+export function AdminTable<TData, TValue>({
   data,
   totalItems,
   columns
-}: ProductTableParams<TData, TValue>) {
-  const user = useUserStore((state) => state.user);
-  console.log('====', user);
+}: AdminTableParams<TData, TValue>) {
   const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
 
   const pageCount = Math.ceil(totalItems / pageSize);

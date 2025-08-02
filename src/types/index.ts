@@ -11,6 +11,7 @@ export interface NavItem {
   description?: string;
   isActive?: boolean;
   items?: NavItem[];
+  permission: string[];
 }
 
 export interface NavItemWithChildren extends NavItem {
@@ -33,3 +34,15 @@ export interface FooterItem {
 export type MainNavItem = NavItemWithOptionalChildren;
 
 export type SidebarNavItem = NavItemWithChildren;
+
+export interface IUser {
+  email: string;
+  id: string;
+  last_login: string | null;
+  name: string;
+  role: string;
+  school: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -12,15 +12,18 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { SignOutButton, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+
 export function UserNav() {
   const { user } = useUser();
+
   const router = useRouter();
+
   if (user) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
-            <UserAvatarProfile user={user} />
+            <UserAvatarProfile user={user} userProfile={null} />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
