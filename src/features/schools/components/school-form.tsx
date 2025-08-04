@@ -27,6 +27,12 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import {
+  malaysiaStatesAndCities,
+  getRandomState,
+  getRandomCity,
+  type MalaysiaState
+} from '@/constants/malaysia-locations';
 
 const formSchema = z.object({
   name: z.string(),
@@ -46,11 +52,12 @@ export default function SchoolForm({
 }) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const randomState = getRandomState();
   const defaultValues = {
     name: initialData?.name || '',
-    state: initialData?.state || '',
-    city: initialData?.city || '',
-    status: initialData?.status || ''
+    state: initialData?.state || randomState,
+    city: initialData?.city || getRandomCity(randomState),
+    status: initialData?.status || 'active'
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -141,14 +148,32 @@ export default function SchoolForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>State</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        placeholder='Enter state'
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Reset city when state changes
+                        const cities =
+                          malaysiaStatesAndCities[value as MalaysiaState];
+                        if (cities && cities.length > 0) {
+                          form.setValue('city', cities[0]);
+                        }
+                      }}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select state' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.keys(malaysiaStatesAndCities).map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state.charAt(0).toUpperCase() + state.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -159,14 +184,28 @@ export default function SchoolForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        placeholder='Enter city'
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select city' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(
+                          malaysiaStatesAndCities[
+                            form.watch('state') as MalaysiaState
+                          ] || []
+                        ).map((city) => (
+                          <SelectItem key={city} value={city}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

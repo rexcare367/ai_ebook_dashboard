@@ -33,6 +33,16 @@ export type School = {
   updated_at: string;
 };
 
+export type User = {
+  id: string;
+  ic_number: string;
+  name: string;
+  school_id: string;
+  registration_status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {

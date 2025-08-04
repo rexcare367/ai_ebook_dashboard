@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Admin } from '@/constants/data';
+import { User } from '@/constants/data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -27,50 +27,34 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import {
+  malaysiaStatesAndCities,
+  getRandomState,
+  getRandomCity,
+  type MalaysiaState
+} from '@/constants/malaysia-locations';
 
 const formSchema = z.object({
   name: z.string(),
-  email: z.string().email({
-    message: 'Please enter a valid email address.'
-  }),
-  role: z.string().min(1, {
-    message: 'Please select a role.'
-  }),
-  status: z.string().min(1, {
-    message: 'Please select a status.'
-  }),
-  school: z.string()
+  ic_number: z.string(),
+  school_id: z.string(),
+  registration_status: z.string()
 });
 
-export default function AdminForm({
+export default function UserForm({
   initialData,
   pageTitle
 }: {
-  initialData: Admin | null;
+  initialData: User | null;
   pageTitle: string;
 }) {
-  const [schools, setSchools] = useState<Array<string>>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    // Fetch schools list
-    axiosInstance
-      .get('/admins/schools')
-      .then((res) => {
-        setSchools(res.data.data.schools);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch schools:', err);
-        toast.error('Failed to load schools list');
-      });
-  }, []);
 
   const defaultValues = {
     name: initialData?.name || '',
-    email: initialData?.email || '',
-    role: initialData?.role || '',
-    status: initialData?.status || '',
-    school: initialData?.school || ''
+    ic_number: initialData?.ic_number || '',
+    school_id: initialData?.school_id || '',
+    registration_status: initialData?.registration_status || 'active'
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -93,26 +77,15 @@ export default function AdminForm({
 
     try {
       if (initialData) {
-        // Update admin
-        await axiosInstance.put(`/admins/${initialData.id}`, values);
-        toast.success('Admin updated successfully!', {
+        // Update school
+        await axiosInstance.patch(`/users/by_id/${initialData.id}`, values);
+        toast.success('User updated successfully!', {
           description: `${values.name} has been updated in the system.`
         });
       } else {
-        await fetch('/api/auth', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: values.email,
-            username: values.email.split('@')[0].replace(/[^a-zA-Z]/g, '')
-          })
-        });
-
-        // Create admin
-        await axiosInstance.post(`/admins`, values);
-        toast.success('Admin created successfully!', {
+        // Create school
+        await axiosInstance.post(`/schools`, values);
+        toast.success('User created successfully!', {
           description: `${values.name} has been added to the system.`
         });
         // Reset form after successful creation
@@ -122,7 +95,7 @@ export default function AdminForm({
       const errorMessage =
         err.response?.data?.message || 'An unexpected error occurred';
       toast.error(
-        initialData ? 'Failed to update admin' : 'Failed to create admin',
+        initialData ? 'Failed to update school' : 'Failed to create school',
         {
           description: errorMessage
         }
@@ -140,9 +113,8 @@ export default function AdminForm({
         </CardTitle>
         {initialData && (
           <div className='text-muted-foreground space-y-1 text-sm'>
-            <p>Created: {formatDateTime(initialData.createdAt)}</p>
-            <p>Last Updated: {formatDateTime(initialData.updatedAt)}</p>
-            <p>Last Login: {formatDateTime(initialData.last_login)}</p>
+            <p>Created: {formatDateTime(initialData.created_at)}</p>
+            <p>Last Updated: {formatDateTime(initialData.updated_at)}</p>
           </div>
         )}
       </CardHeader>
@@ -155,10 +127,10 @@ export default function AdminForm({
                 name='name'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Admin Name</FormLabel>
+                    <FormLabel>User Name</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Enter admin name'
+                        placeholder='Enter school name'
                         {...field}
                         disabled={isLoading}
                       />
@@ -169,14 +141,13 @@ export default function AdminForm({
               />
               <FormField
                 control={form.control}
-                name='email'
+                name='ic_number'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>ic_number</FormLabel>
                     <FormControl>
                       <Input
-                        type='email'
-                        placeholder='Enter email address'
+                        placeholder='Enter ic_number'
                         {...field}
                         disabled={isLoading}
                       />
@@ -187,37 +158,27 @@ export default function AdminForm({
               />
               <FormField
                 control={form.control}
-                name='role'
+                name='school_id'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select role' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='admin'>Admin</SelectItem>
-                        <SelectItem value='school_manager'>
-                          School Manager
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>school_id</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter school name'
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name='status'
+                name='registration_status'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>registration_status</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
@@ -238,45 +199,10 @@ export default function AdminForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name='school'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>School</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select school' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {schools &&
-                          schools.map((school, i) => (
-                            <SelectItem key={i} value={school}>
-                              {school}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-            <div
-              id='clerk-captcha'
-              data-cl-theme='auto'
-              data-cl-size='normal'
-              data-cl-language='auto'
-            />
             <Button type='submit' disabled={isLoading}>
               {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-              {initialData ? 'Update Admin' : 'Create Admin'}
+              {initialData ? 'Update User' : 'Create User'}
             </Button>
           </form>
         </Form>

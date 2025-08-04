@@ -109,21 +109,9 @@ export const columns: ColumnDef<Admin>[] = [
   },
   {
     accessorKey: 'createdAt',
-    header: 'Created At',
+    header: 'Timestamp',
     cell: ({ cell }) => {
       const date = cell.getValue<Admin['createdAt']>();
-      return (
-        <div className='text-muted-foreground text-sm'>
-          {formatDateTime(date)}
-        </div>
-      );
-    }
-  },
-  {
-    accessorKey: 'last_login',
-    header: 'Last Login',
-    cell: ({ cell }) => {
-      const date = cell.getValue<Admin['last_login']>();
       return (
         <div className='text-muted-foreground text-sm'>
           {formatDateTime(date)}

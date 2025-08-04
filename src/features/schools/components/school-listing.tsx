@@ -38,6 +38,7 @@ export default function AdminListingPage() {
   if (loading) {
     return <div>Loading...</div>;
   }
+  console.log('schools', schools);
 
   return (
     <SchoolTable data={schools} totalItems={totalCount} columns={columns} />
