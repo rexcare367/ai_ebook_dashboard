@@ -81,27 +81,21 @@ export const columns: ColumnDef<School>[] = [
     },
     enableColumnFilter: true
   },
-  // {
-  //   id: 'status',
-  //   accessorKey: 'status',
-  //   header: ({ column }: { column: Column<School, unknown> }) => (
-  //     <DataTableColumnHeader column={column} title='Status' />
-  //   ),
-  //   cell: ({ cell }) => {
-  //     const status = cell.getValue<School['status']>();
-  //     return (
-  //       <Badge variant='outline' className='capitalize'>
-  //         {status}
-  //       </Badge>
-  //     );
-  //   },
-  //   enableColumnFilter: true,
-  //   meta: {
-  //     label: 'Status',
-  //     variant: 'multiSelect',
-  //     options: CATEGORY_OPTIONS
-  //   }
-  // },
+  {
+    id: 'students_count',
+    accessorKey: 'students_count',
+    header: ({ column }: { column: Column<School, unknown> }) => (
+      <DataTableColumnHeader column={column} title='students_count' />
+    ),
+    cell: ({ cell }) => {
+      const status = cell.getValue<School['students_count']>();
+      return (
+        <Badge variant='outline' className='capitalize'>
+          {status}
+        </Badge>
+      );
+    }
+  },
   {
     accessorKey: 'status',
     header: 'Status',

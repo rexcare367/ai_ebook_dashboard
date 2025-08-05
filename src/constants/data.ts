@@ -29,6 +29,7 @@ export type School = {
   state: string;
   city: string;
   status: string;
+  students_count: number;
   created_at: string;
   updated_at: string;
 };

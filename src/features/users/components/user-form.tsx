@@ -27,12 +27,6 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import {
-  malaysiaStatesAndCities,
-  getRandomState,
-  getRandomCity,
-  type MalaysiaState
-} from '@/constants/malaysia-locations';
 
 const formSchema = z.object({
   name: z.string(),

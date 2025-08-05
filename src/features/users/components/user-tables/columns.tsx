@@ -59,14 +59,7 @@ export const columns: ColumnDef<User>[] = [
     ),
     cell: ({ cell }) => (
       <div>{cell.getValue<User['registration_status']>()}</div>
-    ),
-    meta: {
-      label: 'State',
-      placeholder: 'Search State...',
-      variant: 'text',
-      icon: Text
-    },
-    enableColumnFilter: true
+    )
   },
   {
     id: 'ic_number',
@@ -76,8 +69,8 @@ export const columns: ColumnDef<User>[] = [
     ),
     cell: ({ cell }) => <div>{cell.getValue<User['ic_number']>()}</div>,
     meta: {
-      label: 'City',
-      placeholder: 'Search City...',
+      label: 'ic_number',
+      placeholder: 'Search ic_number...',
       variant: 'text',
       icon: Text
     },
