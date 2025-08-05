@@ -34,6 +34,22 @@ export type School = {
   updated_at: string;
 };
 
+export type AnalysisResult = {
+  id: string;
+  school_name: string;
+  state: string;
+  city: string;
+  status: string;
+  students_count: number;
+  created_at: string;
+  updated_at: string;
+  total_students: number;
+  count_of_registered_students: number;
+  percent_of_registered_students: number;
+  count_of_active_students: number;
+  percent_of_active_students: number;
+};
+
 export type User = {
   id: string;
   ic_number: string;
@@ -74,6 +90,15 @@ export const navItems: NavItem[] = [
     permission: ['admin']
   },
   {
+    title: 'Data Analysis',
+    url: '/dashboard/analysis',
+    icon: 'user',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [],
+    permission: ['admin']
+  },
+  {
     title: 'Schools',
     url: '/dashboard/schools',
     icon: 'school',
@@ -92,7 +117,7 @@ export const navItems: NavItem[] = [
     permission: ['school_manager']
   },
   {
-    title: 'User',
+    title: 'Students',
     url: '/dashboard/students',
     icon: 'user',
     shortcut: ['a', 'a'],
