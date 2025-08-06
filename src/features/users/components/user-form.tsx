@@ -31,8 +31,7 @@ import { format, parseISO } from 'date-fns';
 const formSchema = z.object({
   name: z.string(),
   ic_number: z.string(),
-  school_id: z.string(),
-  registration_status: z.string()
+  school_id: z.string()
 });
 
 export default function UserForm({
@@ -48,7 +47,7 @@ export default function UserForm({
     name: initialData?.name || '',
     ic_number: initialData?.ic_number || '',
     school_id: initialData?.school_id || '',
-    registration_status: initialData?.registration_status || 'active'
+    registration_status: 'active'
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -78,7 +77,7 @@ export default function UserForm({
         });
       } else {
         // Create school
-        await axiosInstance.post(`/schools`, values);
+        await axiosInstance.post(`/users`, values);
         toast.success('User created successfully!', {
           description: `${values.name} has been added to the system.`
         });
@@ -163,32 +162,6 @@ export default function UserForm({
                         disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='registration_status'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>registration_status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select status' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='active'>Active</SelectItem>
-                        <SelectItem value='inactive'>Inactive</SelectItem>
-                        <SelectItem value='pending'>Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

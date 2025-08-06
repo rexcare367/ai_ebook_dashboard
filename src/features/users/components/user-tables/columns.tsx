@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { CheckCircle2, Text, XCircle } from 'lucide-react';
-// import Image from 'next/image';
+import Image from 'next/image';
 import { CellAction } from './cell-action';
 import { CATEGORY_OPTIONS } from './options';
 import { User } from '@/constants/data';
@@ -19,23 +19,8 @@ const formatDateTime = (dateString: string | null) => {
   }
 };
 
-export const columns: ColumnDef<User>[] = [
-  // {
-  //   accessorKey: 'photo_url',
-  //   header: 'IMAGE',
-  //   cell: ({ row }) => {
-  //     return (
-  //       <div className='relative aspect-square'>
-  //         <Image
-  //           src={row.getValue('photo_url')}
-  //           alt={row.getValue('name')}
-  //           fill
-  //           className='rounded-lg'
-  //         />
-  //       </div>
-  //     );
-  //   }
-  // },
+// Base columns that are common to both views
+const baseColumns: ColumnDef<User>[] = [
   {
     id: 'name',
     accessorKey: 'name',
@@ -52,16 +37,6 @@ export const columns: ColumnDef<User>[] = [
     enableColumnFilter: true
   },
   {
-    id: 'registration_status',
-    accessorKey: 'registration_status',
-    header: ({ column }: { column: Column<User, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Status' />
-    ),
-    cell: ({ cell }) => (
-      <div>{cell.getValue<User['registration_status']>()}</div>
-    )
-  },
-  {
     id: 'ic_number',
     accessorKey: 'ic_number',
     header: ({ column }: { column: Column<User, unknown> }) => (
@@ -76,74 +51,72 @@ export const columns: ColumnDef<User>[] = [
     },
     enableColumnFilter: true
   },
-  // {
-  //   id: 'status',
-  //   accessorKey: 'status',
-  //   header: ({ column }: { column: Column<User, unknown> }) => (
-  //     <DataTableColumnHeader column={column} title='Status' />
-  //   ),
-  //   cell: ({ cell }) => {
-  //     const status = cell.getValue<User['status']>();
-  //     return (
-  //       <Badge variant='outline' className='capitalize'>
-  //         {status}
-  //       </Badge>
-  //     );
-  //   },
-  //   enableColumnFilter: true,
-  //   meta: {
-  //     label: 'Status',
-  //     variant: 'multiSelect',
-  //     options: CATEGORY_OPTIONS
-  //   }
-  // },
-  // {
-  //   accessorKey: 'status',
-  //   header: 'Status',
-  //   cell: ({ cell }) => {
-  //     const status = cell.getValue<User['status']>();
-  //     return (
-  //       <Badge
-  //         variant={status === 'active' ? 'default' : 'secondary'}
-  //         className='capitalize'
-  //       >
-  //         {status}
-  //       </Badge>
-  //     );
-  //   }
-  // },
-  // {
-  //   accessorKey: 'school',
-  //   header: 'User',
-  //   cell: ({ cell }) => <div>{cell.getValue<User['school']>()}</div>
-  // },
-  // {
-  //   accessorKey: 'createdAt',
-  //   header: 'Created At',
-  //   cell: ({ cell }) => {
-  //     const date = cell.getValue<User['createdAt']>();
-  //     return (
-  //       <div className='text-muted-foreground text-sm'>
-  //         {formatDateTime(date)}
-  //       </div>
-  //     );
-  //   }
-  // },
   {
-    accessorKey: 'created_at',
-    header: 'Created At',
-    cell: ({ cell }) => {
-      const date = cell.getValue<User['created_at']>();
-      return (
-        <div className='text-muted-foreground text-sm'>
-          {formatDateTime(date)}
-        </div>
-      );
-    }
+    id: 'email',
+    accessorKey: 'email',
+    header: ({ column }: { column: Column<User, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Email' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<User['email']>()}</div>
   },
-
   {
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />
   }
 ];
+
+// Additional columns for registered users
+const registeredUserColumns: ColumnDef<User>[] = [
+  {
+    id: 'birth',
+    accessorKey: 'birth',
+    header: ({ column }: { column: Column<User, unknown> }) => (
+      <DataTableColumnHeader column={column} title='birth' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<User['birth']>()}</div>
+  },
+  {
+    id: 'address',
+    accessorKey: 'address',
+    header: ({ column }: { column: Column<User, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Address' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<User['address']>()}</div>
+  },
+  {
+    id: 'year',
+    accessorKey: 'year',
+    header: ({ column }: { column: Column<User, unknown> }) => (
+      <DataTableColumnHeader column={column} title='year' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<User['birth']>()}</div>
+  },
+  {
+    id: 'parent-phone-number',
+    accessorKey: 'parent-phone-number',
+    header: ({ column }: { column: Column<User, unknown> }) => (
+      <DataTableColumnHeader column={column} title='parent phone number' />
+    ),
+    cell: ({ cell }) => <div>{cell.getValue<User['address']>()}</div>
+  }
+];
+
+// Function to get columns based on view type
+export const getColumns = (
+  showRegisteredOnly: boolean = false
+): ColumnDef<User>[] => {
+  if (showRegisteredOnly) {
+    // For registered users, include email and address columns
+    return [
+      ...baseColumns.slice(0, -1), // All base columns except actions
+      ...registeredUserColumns, // Add email and address
+      baseColumns[baseColumns.length - 1] // Add actions back
+    ];
+  } else {
+    // For all users, only show base columns (no email/address)
+    return baseColumns;
+  }
+};
+
+// Export the original columns for backward compatibility
+export const columns: ColumnDef<User>[] = baseColumns;

@@ -71,13 +71,6 @@ export default function AdminListingPage() {
     updateFilters(currentState, value);
   };
 
-  const clearFilters = () => {
-    const firstState = Object.keys(malaysiaStatesAndCities)[0];
-    const firstCity =
-      malaysiaStatesAndCities[firstState as MalaysiaState]?.[0] || '';
-    updateFilters(firstState, firstCity);
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -85,8 +78,11 @@ export default function AdminListingPage() {
         // Extract parameters from URL query string
         const page = searchParams.get('page') || '1';
         const perPage = searchParams.get('perPage') || '10';
-        const city = searchParams.get('city') || '';
-        const state = searchParams.get('state') || '';
+        const city =
+          searchParams.get('city') ||
+          malaysiaStatesAndCities[currentState as MalaysiaState]?.[0] ||
+          '';
+        const state = searchParams.get('state') || currentState || '';
         const name = searchParams.get('school_name') || '';
         const sort = searchParams.get('sort') || '';
 
@@ -94,8 +90,8 @@ export default function AdminListingPage() {
           params: {
             page: parseInt(page),
             perPage: parseInt(perPage),
-            city: city || undefined,
-            state: state || undefined,
+            city: city,
+            state: state,
             name: name || undefined,
             sort: sort || undefined
           }

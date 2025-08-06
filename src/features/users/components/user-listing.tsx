@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { User, School } from '@/constants/data';
 import axiosInstance from '@/lib/axios';
 import { UserTable } from './user-tables';
-import { columns } from './user-tables/columns';
+import { getColumns } from './user-tables/columns';
 import { toast } from 'sonner';
 import {
   Select,
@@ -21,7 +21,13 @@ import {
 } from '@/constants/malaysia-locations';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AdminListingPage() {
+interface UserListingPageProps {
+  showRegisteredOnly?: boolean;
+}
+
+export default function UserListingPage({
+  showRegisteredOnly = false
+}: UserListingPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -159,16 +165,24 @@ export default function AdminListingPage() {
         const name = searchParams.get('name') || '';
         const ic_number = searchParams.get('ic_number') || '';
 
+        // Prepare API parameters
+        const apiParams: any = {
+          page: parseInt(page),
+          perPage: parseInt(perPage),
+          sort: sort || undefined,
+          name: name || undefined,
+          ic_number: ic_number || undefined
+        };
+
+        // If showRegisteredOnly is true, filter by registration_status = 'completed'
+        if (showRegisteredOnly) {
+          apiParams.status = 'COMPLETED';
+        }
+
         const res = await axiosInstance.get(
           `/users/by_school/${selectedSchoolId}`,
           {
-            params: {
-              page: parseInt(page),
-              perPage: parseInt(perPage),
-              sort: sort || undefined,
-              name: name || undefined,
-              ic_number: ic_number || undefined
-            }
+            params: apiParams
           }
         );
         if (res.data && res.data.success) {
@@ -184,7 +198,7 @@ export default function AdminListingPage() {
       }
     };
     fetchData();
-  }, [selectedSchoolId, searchParams]);
+  }, [selectedSchoolId, searchParams, showRegisteredOnly]);
 
   return (
     <div className='space-y-4'>
@@ -271,7 +285,8 @@ export default function AdminListingPage() {
             <Alert>
               <AlertCircle className='h-4 w-4' />
               <AlertDescription>
-                Please select a school to view the students list.
+                Please select a school to view the{' '}
+                {showRegisteredOnly ? 'registered ' : ''}students list.
               </AlertDescription>
             </Alert>
           )}
@@ -287,7 +302,7 @@ export default function AdminListingPage() {
                   <UserTable
                     data={users}
                     totalItems={totalCount}
-                    columns={columns}
+                    columns={getColumns(showRegisteredOnly)}
                   />
                 </div>
               </>

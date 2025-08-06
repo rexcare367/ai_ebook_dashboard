@@ -53,7 +53,12 @@ export type AnalysisResult = {
 export type User = {
   id: string;
   ic_number: string;
+  email: string;
   name: string;
+  birth: string;
+  address: string;
+  parent: any;
+  rewards: any[];
   school_id: string;
   registration_status: string;
   created_at: string;
@@ -118,11 +123,26 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Students',
-    url: '/dashboard/students',
+    url: '#',
     icon: 'user',
     shortcut: ['a', 'a'],
     isActive: false,
-    items: [],
+    items: [
+      {
+        title: 'All',
+        url: '/dashboard/students/all',
+        icon: 'userPen',
+        shortcut: ['m', 'm'],
+        permission: ['admin', 'school_manager']
+      },
+      {
+        title: 'Registered Students',
+        url: '/dashboard/students/registered',
+        icon: 'userPen',
+        shortcut: ['m', 'm'],
+        permission: ['admin', 'school_manager']
+      }
+    ],
     permission: ['admin', 'school_manager']
   },
   {
