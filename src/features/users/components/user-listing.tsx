@@ -1,10 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { User, School } from '@/constants/data';
-import axiosInstance from '@/lib/axios';
-import { UserTable } from './user-tables';
-import { getColumns } from './user-tables/columns';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -15,11 +11,18 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading';
+import { UserTable } from './user-tables';
+import { getColumns } from './user-tables/columns';
 import {
   malaysiaStatesAndCities,
-  type MalaysiaState
+  MalaysiaState
 } from '@/constants/malaysia-locations';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { User, School } from '@/constants/data';
+import axiosInstance from '@/lib/axios';
+import { toast } from 'sonner';
+import { useUserStore } from '@/utils/user-store';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface UserListingPageProps {
   showRegisteredOnly?: boolean;
@@ -30,6 +33,7 @@ export default function UserListingPage({
 }: UserListingPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user: currentUser } = useUserStore();
 
   const [users, setUsers] = useState<User[]>([]);
   const [allSchools, setAllSchools] = useState<School[]>([]);
@@ -37,6 +41,10 @@ export default function UserListingPage({
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [schoolsLoading, setSchoolsLoading] = useState(true);
+
+  // Check if user is a school manager
+  const isSchoolManager = currentUser?.current_role === 'school_manager';
+  const userSchool = currentUser?.school;
 
   // Set default state as the first state in the list
   const defaultState = Object.keys(malaysiaStatesAndCities)[0] as MalaysiaState;
@@ -63,8 +71,13 @@ export default function UserListingPage({
     ? malaysiaStatesAndCities[selectedState]
     : [];
 
-  // Fetch all schools once on component mount
+  // Fetch all schools once on component mount (only for admin users)
   useEffect(() => {
+    if (isSchoolManager) {
+      setSchoolsLoading(false);
+      return;
+    }
+
     const fetchAllSchools = async () => {
       setSchoolsLoading(true);
       try {
@@ -87,10 +100,14 @@ export default function UserListingPage({
     };
 
     fetchAllSchools();
-  }, []);
+  }, [isSchoolManager]);
 
-  // Filter schools based on selected state and city
+  // Filter schools based on selected state and city (only for admin users)
   useEffect(() => {
+    if (isSchoolManager) {
+      return;
+    }
+
     const filtered = allSchools.filter(
       (school) =>
         school.state.toLowerCase() === selectedState.toLowerCase() &&
@@ -103,10 +120,20 @@ export default function UserListingPage({
     } else if (filtered.length === 0) {
       setSelectedSchoolId(null);
     }
-  }, [allSchools, selectedState, selectedCity, selectedSchoolId]);
+  }, [
+    allSchools,
+    selectedState,
+    selectedCity,
+    selectedSchoolId,
+    isSchoolManager
+  ]);
 
-  // Update URL when selections change
+  // Update URL when selections change (only for admin users)
   useEffect(() => {
+    if (isSchoolManager) {
+      return;
+    }
+
     const params = new URLSearchParams(searchParams);
 
     if (selectedState) {
@@ -128,29 +155,47 @@ export default function UserListingPage({
     }
 
     router.push(`?${params.toString()}`);
-  }, [selectedState, selectedCity, selectedSchoolId, router, searchParams]);
+  }, [
+    selectedState,
+    selectedCity,
+    selectedSchoolId,
+    router,
+    searchParams,
+    isSchoolManager
+  ]);
 
-  // Reset dependent fields when state changes
+  // Reset dependent fields when state changes (only for admin users)
   useEffect(() => {
+    if (isSchoolManager) {
+      return;
+    }
+
     if (selectedState !== defaultState) {
       // Don't reset on initial mount
       const firstCity = malaysiaStatesAndCities[selectedState][0];
       setSelectedCity(firstCity);
     }
-  }, [selectedState, defaultState]);
+  }, [selectedState, defaultState, isSchoolManager]);
 
-  // Reset school when city changes
+  // Reset school when city changes (only for admin users)
   useEffect(() => {
+    if (isSchoolManager) {
+      return;
+    }
+
     if (selectedCity !== defaultCity) {
       // Don't reset on initial mount
       setSelectedSchoolId(null);
     }
-  }, [selectedCity, defaultCity]);
+  }, [selectedCity, defaultCity, isSchoolManager]);
 
   // Fetch users based on URL parameters and selected school
   useEffect(() => {
     const fetchData = async () => {
-      if (!selectedSchoolId) {
+      // For school managers, use their assigned school
+      const schoolId = isSchoolManager ? userSchool?.id : selectedSchoolId;
+
+      if (!schoolId) {
         setUsers([]);
         setTotalCount(0);
         return;
@@ -179,12 +224,9 @@ export default function UserListingPage({
           apiParams.status = 'COMPLETED';
         }
 
-        const res = await axiosInstance.get(
-          `/users/by_school/${selectedSchoolId}`,
-          {
-            params: apiParams
-          }
-        );
+        const res = await axiosInstance.get(`/users/by_school/${schoolId}`, {
+          params: apiParams
+        });
         if (res.data && res.data.success) {
           setTotalCount(res.data.data.total_count || 0);
           setUsers(res.data.data.users || []);
@@ -198,7 +240,13 @@ export default function UserListingPage({
       }
     };
     fetchData();
-  }, [selectedSchoolId, searchParams, showRegisteredOnly]);
+  }, [
+    selectedSchoolId,
+    searchParams,
+    showRegisteredOnly,
+    isSchoolManager,
+    userSchool
+  ]);
 
   return (
     <div className='space-y-4'>
@@ -208,80 +256,106 @@ export default function UserListingPage({
         </div>
       ) : (
         <>
-          <div className='flex items-center space-x-4'>
-            {/* State Selection */}
-            <Select
-              value={selectedState}
-              onValueChange={(value: MalaysiaState) => setSelectedState(value)}
-            >
-              <SelectTrigger className='w-[200px]'>
-                <SelectValue placeholder='Select state' />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.keys(malaysiaStatesAndCities).map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state.charAt(0).toUpperCase() + state.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* School Manager View */}
+          {isSchoolManager && userSchool && (
+            <Card className='border-blue-200 bg-blue-50'>
+              <CardContent>
+                <div className='grid grid-cols-1 gap-4 text-sm md:grid-cols-3'>
+                  <div>
+                    <span className='font-medium'>School: </span>
+                    {userSchool.name}
+                  </div>
+                  <div>
+                    <span className='font-medium'>Address:</span>{' '}
+                    {userSchool.city}, {userSchool.state}
+                  </div>
+                  <div>
+                    <span className='font-medium'>Students:</span> {totalCount}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* City Selection - only enabled if state is selected */}
-            <Select
-              value={selectedCity}
-              onValueChange={setSelectedCity}
-              disabled={!selectedState}
-            >
-              <SelectTrigger className='w-[200px]'>
-                <SelectValue placeholder='Select city' />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* School Selection - only enabled if city is selected */}
-            <Select
-              value={selectedSchoolId || ''}
-              onValueChange={(value) => {
-                setSelectedSchoolId(value);
-              }}
-              disabled={!selectedCity}
-            >
-              <SelectTrigger className='w-[300px]'>
-                <SelectValue placeholder='Select school' />
-                {schoolsLoading && (
-                  <div className='absolute right-3'>
-                    <LoadingSpinner size='sm' />
-                  </div>
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                {schoolsLoading ? (
-                  <div className='flex items-center justify-center p-4'>
-                    <LoadingSpinner size='sm' text='Loading schools...' />
-                  </div>
-                ) : filteredSchools.length === 0 ? (
-                  <div className='text-muted-foreground p-4 text-center text-sm'>
-                    No schools found for this city
-                  </div>
-                ) : (
-                  filteredSchools.map((school) => (
-                    <SelectItem key={school.id} value={school.id}>
-                      {school.name}
+          {/* Admin View - State/City/School Selection */}
+          {!isSchoolManager && (
+            <div className='flex items-center space-x-4'>
+              {/* State Selection */}
+              <Select
+                value={selectedState}
+                onValueChange={(value: MalaysiaState) =>
+                  setSelectedState(value)
+                }
+              >
+                <SelectTrigger className='w-[200px]'>
+                  <SelectValue placeholder='Select state' />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(malaysiaStatesAndCities).map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state.charAt(0).toUpperCase() + state.slice(1)}
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                  ))}
+                </SelectContent>
+              </Select>
 
-          {/* Alert when no school is selected */}
-          {!selectedSchoolId && !loading && (
+              {/* City Selection - only enabled if state is selected */}
+              <Select
+                value={selectedCity}
+                onValueChange={setSelectedCity}
+                disabled={!selectedState}
+              >
+                <SelectTrigger className='w-[200px]'>
+                  <SelectValue placeholder='Select city' />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* School Selection - only enabled if city is selected */}
+              <Select
+                value={selectedSchoolId || ''}
+                onValueChange={(value) => {
+                  setSelectedSchoolId(value);
+                }}
+                disabled={!selectedCity}
+              >
+                <SelectTrigger className='w-[300px]'>
+                  <SelectValue placeholder='Select school' />
+                  {schoolsLoading && (
+                    <div className='absolute right-3'>
+                      <LoadingSpinner size='sm' />
+                    </div>
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {schoolsLoading ? (
+                    <div className='flex items-center justify-center p-4'>
+                      <LoadingSpinner size='sm' text='Loading schools...' />
+                    </div>
+                  ) : filteredSchools.length === 0 ? (
+                    <div className='text-muted-foreground p-4 text-center text-sm'>
+                      No schools found for this city
+                    </div>
+                  ) : (
+                    filteredSchools.map((school) => (
+                      <SelectItem key={school.id} value={school.id}>
+                        {school.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Alert when no school is selected (only for admin users) */}
+          {!isSchoolManager && !selectedSchoolId && !loading && (
             <Alert>
               <AlertCircle className='h-4 w-4' />
               <AlertDescription>
@@ -296,7 +370,7 @@ export default function UserListingPage({
               <LoadingSpinner size='lg' text='Loading users...' />
             </div>
           ) : (
-            selectedSchoolId && (
+            (isSchoolManager || selectedSchoolId) && (
               <>
                 <div className='h-full'>
                   <UserTable
