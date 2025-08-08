@@ -1,9 +1,9 @@
-import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import CustomSignUpView from './custom-sign-up-form';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ModeToggle } from '@/components/layout/ThemeToggle/theme-toggle';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -12,16 +12,10 @@ export const metadata: Metadata = {
 
 export default function SignUpViewPage() {
   return (
-    <div className='relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
-      <Link
-        href='/examples/authentication'
-        className={cn(
-          buttonVariants({ variant: 'ghost' }),
-          'absolute top-4 right-4 hidden md:top-8 md:right-8'
-        )}
-      >
-        Sign Up
-      </Link>
+    <div className='bg-background text-foreground relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
+      <div className='absolute top-4 right-4 flex items-center gap-2 md:top-8 md:right-8'>
+        <ModeToggle />
+      </div>
       <div className='bg-muted relative hidden h-full flex-col p-10 lg:flex dark:border-r'>
         <div className='relative z-20 flex items-center text-lg font-medium'>
           <Image src='/assets/logo.png' alt='sponser' width={120} height={50} />
@@ -50,7 +44,9 @@ export default function SignUpViewPage() {
       <div className='flex h-full items-center justify-center p-4 lg:p-8'>
         <div className='flex h-full w-full max-w-md flex-col items-center justify-center space-y-6 rounded-4xl border-1 border-white/50 bg-black/10 p-4'>
           <Link
-            className={cn('group inline-flex hover:text-yellow-200')}
+            className={cn(
+              'group text-foreground inline-flex hover:text-yellow-200'
+            )}
             target='_blank'
             href={'https://github.com/kiranism/next-shadcn-dashboard-starter'}
           >
@@ -59,7 +55,7 @@ export default function SignUpViewPage() {
             </div>
           </Link>
           <CustomSignUpView />
-          <div className='w-full text-center text-sm'>
+          <div className='text-foreground w-full text-center text-sm'>
             Already have an account?{' '}
             <Link href='/auth/sign-in' className='hover:text-primary underline'>
               Sign in
@@ -82,6 +78,7 @@ export default function SignUpViewPage() {
             </Link>
             .
           </p>
+          <ModeToggle />
         </div>
       </div>
     </div>

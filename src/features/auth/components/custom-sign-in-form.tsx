@@ -184,7 +184,7 @@ export default function CustomSignInForm() {
         type='submit'
         className={cn(
           buttonVariants(),
-          'w-full bg-neutral-800 hover:bg-neutral-950'
+          'bg-primary hover:bg-primary/90 w-full'
         )}
         disabled={loading}
       >
