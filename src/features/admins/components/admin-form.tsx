@@ -36,10 +36,12 @@ const formSchema = z.object({
   role: z.string().min(1, {
     message: 'Please select a role.'
   }),
+  current_role: z.string().optional(),
   status: z.string().min(1, {
     message: 'Please select a status.'
   }),
-  school: z.string()
+  school: z.string(),
+  school_id: z.string().optional()
 });
 
 export default function AdminForm({
@@ -69,8 +71,10 @@ export default function AdminForm({
     name: initialData?.name || '',
     email: initialData?.email || '',
     role: initialData?.role || '',
+    current_role: initialData?.current_role || initialData?.role || '',
     status: initialData?.status || '',
-    school: initialData?.school || ''
+    school: initialData?.school?.name || '',
+    school_id: initialData?.school_id || ''
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -208,6 +212,50 @@ export default function AdminForm({
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='current_role'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select current role' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='admin'>Admin</SelectItem>
+                        <SelectItem value='school_manager'>
+                          School Manager
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='school_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School ID</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter school ID'
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

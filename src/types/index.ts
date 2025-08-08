@@ -41,8 +41,19 @@ export interface IUser {
   last_login: string | null;
   name: string;
   role: string;
-  school: string;
+  current_role: string;
+  school_id: string;
   status: string;
   createdAt: string;
   updatedAt: string;
+  school: {
+    id: string;
+    name: string;
+    state: string;
+    city: string;
+    status: string;
+    students_count: number;
+    created_at: string;
+    updated_at: string;
+  } | null;
 }

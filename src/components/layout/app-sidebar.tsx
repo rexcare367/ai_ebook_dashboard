@@ -39,7 +39,8 @@ import {
   IconCreditCard,
   IconLogout,
   IconPhotoUp,
-  IconUserCircle
+  IconUserCircle,
+  IconBuilding
 } from '@tabler/icons-react';
 import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
@@ -48,6 +49,7 @@ import * as React from 'react';
 import { useUserStore } from '@/utils/user-store';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
+import { SchoolSelectionDialog } from '../school-selection-dialog';
 import { IUser } from '@/types';
 
 export const company = {
@@ -97,10 +99,10 @@ export default function AppSidebar() {
                 if (!item.permission || item.permission.length === 0) {
                   return true;
                 }
-                // Check if user's role is in the item's permission array
+                // Check if user's current_role is in the item's permission array
                 return (
-                  userProfile?.role &&
-                  item.permission.includes(userProfile.role)
+                  userProfile?.current_role &&
+                  item.permission.includes(userProfile.current_role)
                 );
               })
               .map((item) => {
@@ -134,10 +136,12 @@ export default function AppSidebar() {
                               ) {
                                 return true;
                               }
-                              // Check if user's role is in the sub-item's permission array
+                              // Check if user's current_role is in the sub-item's permission array
                               return (
-                                userProfile?.role &&
-                                subItem.permission.includes(userProfile.role)
+                                userProfile?.current_role &&
+                                subItem.permission.includes(
+                                  userProfile.current_role
+                                )
                               );
                             })
                             .map((subItem) => (
@@ -176,6 +180,25 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          {/* Role Switching for Admin */}
+          {userProfile?.role === 'admin' && (
+            <SidebarMenuItem>
+              <SchoolSelectionDialog>
+                <SidebarMenuButton
+                  size='lg'
+                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                >
+                  <IconBuilding className='mr-2 h-4 w-4' />
+                  <span>
+                    {userProfile.current_role === 'school_manager'
+                      ? `Managing: ${userProfile.school?.name || 'Unknown School'}`
+                      : 'Switch to School Manager'}
+                  </span>
+                </SidebarMenuButton>
+              </SchoolSelectionDialog>
+            </SidebarMenuItem>
+          )}
+
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

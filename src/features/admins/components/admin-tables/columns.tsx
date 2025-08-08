@@ -88,6 +88,27 @@ export const columns: ColumnDef<Admin>[] = [
     }
   },
   {
+    id: 'current_role',
+    accessorKey: 'current_role',
+    header: ({ column }: { column: Column<Admin, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Current Role' />
+    ),
+    cell: ({ cell }) => {
+      const currentRole = cell.getValue<Admin['current_role']>();
+      return (
+        <Badge variant='outline' className='capitalize'>
+          {currentRole}
+        </Badge>
+      );
+    },
+    enableColumnFilter: true,
+    meta: {
+      label: 'Current Role',
+      variant: 'multiSelect',
+      options: CATEGORY_OPTIONS
+    }
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ cell }) => {
@@ -105,7 +126,15 @@ export const columns: ColumnDef<Admin>[] = [
   {
     accessorKey: 'school',
     header: 'School',
-    cell: ({ cell }) => <div>{cell.getValue<Admin['school']>()}</div>
+    cell: ({ cell }) => {
+      const school = cell.getValue<Admin['school']>();
+      return <div>{school?.name || 'No School'}</div>;
+    }
+  },
+  {
+    accessorKey: 'school_id',
+    header: 'School ID',
+    cell: ({ cell }) => <div>{cell.getValue<Admin['school_id']>()}</div>
   },
   {
     accessorKey: 'createdAt',

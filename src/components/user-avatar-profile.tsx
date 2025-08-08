@@ -34,7 +34,7 @@ export function UserAvatarProfile({
             {user?.emailAddresses[0].emailAddress || ''}
           </span>
           <span className='truncate font-semibold'>
-            {userProfile?.role || ''}
+            {userProfile?.current_role || userProfile?.role || ''}
           </span>
         </div>
       )}

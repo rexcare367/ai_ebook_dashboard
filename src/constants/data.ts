@@ -17,8 +17,19 @@ export type Admin = {
   email: string;
   status: string;
   role: string;
+  current_role: string;
   createdAt: string;
-  school: string;
+  school: {
+    id: string;
+    name: string;
+    state: string;
+    city: string;
+    status: string;
+    students_count: number;
+    created_at: string;
+    updated_at: string;
+  } | null;
+  school_id: string;
   updatedAt: string;
   last_login: string | null;
 };
