@@ -147,7 +147,7 @@ export function SchoolSelectionDialog({
       // First, update in backend to ensure persistence
       const response = await axiosInstance.put(`/admins/${user.id}`, {
         current_role: 'admin',
-        school_id: ''
+        school_id: null
       });
 
       // Verify the backend update was successful

@@ -157,6 +157,15 @@ export const navItems: NavItem[] = [
     permission: ['admin', 'school_manager']
   },
   {
+    title: 'Leaderboard',
+    url: '/dashboard/leaderboard',
+    icon: 'chart',
+    shortcut: ['s', 's'],
+    isActive: false,
+    items: [],
+    permission: ['admin', 'school_manager']
+  },
+  {
     title: 'Account',
     url: '#', // Placeholder as there is no direct link for the parent
     icon: 'billing',
