@@ -1,23 +1,9 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
-import { CheckCircle2, Text, XCircle } from 'lucide-react';
-import Image from 'next/image';
+import { Text } from 'lucide-react';
 import { CellAction } from './cell-action';
-import { CATEGORY_OPTIONS } from './options';
 import { User } from '@/constants/data';
-import { format, parseISO } from 'date-fns';
-
-// Helper function to format datetime
-const formatDateTime = (dateString: string | null) => {
-  if (!dateString) return 'Never';
-  try {
-    return format(parseISO(dateString), 'MMM dd, yyyy HH:mm');
-  } catch {
-    return 'Invalid date';
-  }
-};
 
 // Base columns that are common to both views (excluding actions)
 const getBaseColumns = (): ColumnDef<User>[] => [
@@ -80,7 +66,7 @@ const registeredUserColumns: ColumnDef<User>[] = [
     id: 'birth',
     accessorKey: 'birth',
     header: ({ column }: { column: Column<User, unknown> }) => (
-      <DataTableColumnHeader column={column} title='birth' />
+      <DataTableColumnHeader column={column} title='Birth Date' />
     ),
     cell: ({ cell }) => <div>{cell.getValue<User['birth']>()}</div>
   },
@@ -93,20 +79,12 @@ const registeredUserColumns: ColumnDef<User>[] = [
     cell: ({ cell }) => <div>{cell.getValue<User['address']>()}</div>
   },
   {
-    id: 'year',
-    accessorKey: 'year',
-    header: ({ column }: { column: Column<User, unknown> }) => (
-      <DataTableColumnHeader column={column} title='year' />
-    ),
-    cell: ({ cell }) => <div>{cell.getValue<User['birth']>()}</div>
-  },
-  {
     id: 'parent-phone-number',
-    accessorKey: 'parent-phone-number',
+    accessorKey: 'parent.phone_number',
     header: ({ column }: { column: Column<User, unknown> }) => (
-      <DataTableColumnHeader column={column} title='parent phone number' />
+      <DataTableColumnHeader column={column} title='Parent Phone Number' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<User['address']>()}</div>
+    cell: ({ row }) => <div>{row.original.parent?.phone_number || 'N/A'}</div>
   }
 ];
 
@@ -149,15 +127,15 @@ export const getColumns = (
   const actionsColumn = getActionsColumn(showStatisticsAction);
 
   if (showRegisteredOnly) {
-    // For registered users, include email and address columns
+    // For registered users, include all columns
     const registeredColumns = [
-      ...baseColumns, // All base columns
-      ...registeredUserColumns, // Add additional registered user columns
-      actionsColumn // Add actions
+      ...baseColumns,
+      ...registeredUserColumns,
+      actionsColumn
     ];
     return createColumnsWithRowClick(registeredColumns);
   } else {
-    // For all users, only show base columns (no email/address)
+    // For all users, only show base columns
     const allColumns = [...baseColumns, actionsColumn];
     return createColumnsWithRowClick(allColumns);
   }

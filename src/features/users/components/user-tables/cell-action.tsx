@@ -9,16 +9,25 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { User } from '@/constants/data';
-import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
+import {
+  IconEdit,
+  IconDotsVertical,
+  IconTrash,
+  IconChartBar
+} from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import axiosInstance from '@/lib/axios';
 
 interface CellActionProps {
   data: User;
+  showStatisticsAction?: boolean;
 }
 
-export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+export const CellAction: React.FC<CellActionProps> = ({
+  data,
+  showStatisticsAction = false
+}) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -61,6 +70,17 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           >
             <IconEdit className='mr-2 h-4 w-4' /> Update
           </DropdownMenuItem>
+
+          {showStatisticsAction && (
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/dashboard/students/statistics/${data.id}`)
+              }
+            >
+              <IconChartBar className='mr-2 h-4 w-4' /> Statistics
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <IconTrash className='mr-2 h-4 w-4' /> Delete
           </DropdownMenuItem>
