@@ -19,8 +19,8 @@ const formatDateTime = (dateString: string | null) => {
   }
 };
 
-// Base columns that are common to both views
-const baseColumns: ColumnDef<User>[] = [
+// Base columns that are common to both views (excluding actions)
+const getBaseColumns = (): ColumnDef<User>[] => [
   {
     id: 'name',
     accessorKey: 'name',
@@ -58,12 +58,21 @@ const baseColumns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title='Email' />
     ),
     cell: ({ cell }) => <div>{cell.getValue<User['email']>()}</div>
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <CellAction data={row.original} />
   }
 ];
+
+// Actions column factory
+const getActionsColumn = (
+  showStatisticsAction: boolean = false
+): ColumnDef<User> => ({
+  id: 'actions',
+  cell: ({ row }) => (
+    <CellAction
+      data={row.original}
+      showStatisticsAction={showStatisticsAction}
+    />
+  )
+});
 
 // Additional columns for registered users
 const registeredUserColumns: ColumnDef<User>[] = [
@@ -103,20 +112,59 @@ const registeredUserColumns: ColumnDef<User>[] = [
 
 // Function to get columns based on view type
 export const getColumns = (
-  showRegisteredOnly: boolean = false
+  showRegisteredOnly: boolean = false,
+  onRowClick?: (user: User) => void,
+  showStatisticsAction: boolean = false
 ): ColumnDef<User>[] => {
+  // Create columns with optional row click handler
+  const createColumnsWithRowClick = (
+    columns: ColumnDef<User>[]
+  ): ColumnDef<User>[] => {
+    if (!onRowClick) return columns;
+
+    return columns.map((column) => ({
+      ...column,
+      cell: (props) => {
+        const originalCell =
+          typeof column.cell === 'function' ? column.cell(props) : column.cell;
+
+        // Don't add click handler to actions column
+        if (column.id === 'actions') {
+          return originalCell;
+        }
+
+        return (
+          <div
+            className='hover:bg-muted/50 -m-2 cursor-pointer rounded p-2'
+            onClick={() => onRowClick(props.row.original)}
+          >
+            {originalCell}
+          </div>
+        );
+      }
+    }));
+  };
+
+  const baseColumns = getBaseColumns();
+  const actionsColumn = getActionsColumn(showStatisticsAction);
+
   if (showRegisteredOnly) {
     // For registered users, include email and address columns
-    return [
-      ...baseColumns.slice(0, -1), // All base columns except actions
-      ...registeredUserColumns, // Add email and address
-      baseColumns[baseColumns.length - 1] // Add actions back
+    const registeredColumns = [
+      ...baseColumns, // All base columns
+      ...registeredUserColumns, // Add additional registered user columns
+      actionsColumn // Add actions
     ];
+    return createColumnsWithRowClick(registeredColumns);
   } else {
     // For all users, only show base columns (no email/address)
-    return baseColumns;
+    const allColumns = [...baseColumns, actionsColumn];
+    return createColumnsWithRowClick(allColumns);
   }
 };
 
 // Export the original columns for backward compatibility
-export const columns: ColumnDef<User>[] = baseColumns;
+export const columns: ColumnDef<User>[] = [
+  ...getBaseColumns(),
+  getActionsColumn()
+];

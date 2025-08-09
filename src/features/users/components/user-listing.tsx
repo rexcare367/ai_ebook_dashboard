@@ -21,8 +21,7 @@ import { User, School } from '@/constants/data';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import { useUserStore } from '@/utils/user-store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface UserListingPageProps {
   showRegisteredOnly?: boolean;
@@ -248,6 +247,13 @@ export default function UserListingPage({
     userSchool
   ]);
 
+  // Handle row click - navigate to statistics page for school managers and registered students
+  const handleRowClick = (user: User) => {
+    if (isSchoolManager && showRegisteredOnly) {
+      router.push(`/dashboard/students/statistics/${user.id}`);
+    }
+  };
+
   return (
     <div className='space-y-4'>
       {schoolsLoading ? (
@@ -354,6 +360,16 @@ export default function UserListingPage({
             </div>
           )}
 
+          {/* Info banner for registered students page */}
+          {isSchoolManager && showRegisteredOnly && (
+            <Alert>
+              <AlertCircle className='h-4 w-4' />
+              <AlertDescription>
+                Click on any student row to view their reading statistics.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Alert when no school is selected (only for admin users) */}
           {!isSchoolManager && !selectedSchoolId && !loading && (
             <Alert>
@@ -376,7 +392,13 @@ export default function UserListingPage({
                   <UserTable
                     data={users}
                     totalItems={totalCount}
-                    columns={getColumns(showRegisteredOnly)}
+                    columns={getColumns(
+                      showRegisteredOnly,
+                      isSchoolManager && showRegisteredOnly
+                        ? handleRowClick
+                        : undefined,
+                      isSchoolManager && showRegisteredOnly
+                    )}
                   />
                 </div>
               </>

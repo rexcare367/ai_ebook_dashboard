@@ -61,6 +61,24 @@ export type AnalysisResult = {
   percent_of_active_students: number;
 };
 
+export type SingleSchoolAnalysisResult = {
+  school_name: string;
+  id: string;
+  state: string;
+  city: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  total_students: number;
+  count_of_registered_students: number;
+  percent_of_registered_students: number;
+  count_of_active_students: number;
+  percent_of_active_students: number;
+  students_by_status: {
+    [key: string]: number;
+  };
+};
+
 export type User = {
   id: string;
   ic_number: string;
@@ -106,13 +124,13 @@ export const navItems: NavItem[] = [
     permission: ['admin']
   },
   {
-    title: 'Data Analysis',
+    title: 'Statistics',
     url: '/dashboard/analysis',
     icon: 'user',
-    shortcut: ['a', 'a'],
+    shortcut: ['s', 's'],
     isActive: false,
     items: [],
-    permission: ['admin']
+    permission: ['admin', 'school_manager']
   },
   {
     title: 'Schools',
@@ -125,7 +143,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'School Statistics',
-    url: '/dashboard/school_statistics',
+    url: '/dashboard/analysis',
     icon: 'user',
     shortcut: ['s', 's'],
     isActive: false,
