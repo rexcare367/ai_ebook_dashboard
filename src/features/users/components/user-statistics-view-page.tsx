@@ -8,6 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import {
   BookOpen,
   Clock,
@@ -19,8 +28,12 @@ import {
   MapPin,
   User,
   Mail,
-  CreditCard
+  CreditCard,
+  Edit3,
+  Save,
+  X
 } from 'lucide-react';
+import moment from 'moment';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -48,12 +61,46 @@ import {
   UserStatisticsData,
   ApiResponse
 } from '@/types';
+import * as z from 'zod';
 
 type UserStatisticsViewPageProps = {
   userId: string;
 };
 
 const BOOKS_PER_PAGE = 10;
+
+// Type guard for registration status
+const isValidRegistrationStatus = (
+  status: string
+): status is 'PENDING' | 'APPROVED' | 'COMPLETED' => {
+  return ['PENDING', 'APPROVED', 'COMPLETED'].includes(status);
+};
+
+// Validation schema for user edit form
+const userEditSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  ic_number: z.string().min(1, { message: 'IC Number is required' }),
+  email: z
+    .string()
+    .email({ message: 'Please enter a valid email address' })
+    .optional()
+    .or(z.literal('')),
+  school_name: z.string().min(1, { message: 'School name is required' }),
+  registration_status: z.enum(['PENDING', 'APPROVED', 'COMPLETED'], {
+    message: 'Please select a valid registration status'
+  }),
+  birth: z.string().optional(),
+  address: z.string().optional(),
+  parent_phone_number: z.string().optional(),
+  parent_email: z
+    .string()
+    .email({ message: 'Please enter a valid email address' })
+    .optional()
+    .or(z.literal('')),
+  parent_relationship: z.string().optional()
+});
+
+type UserEditFormData = z.infer<typeof userEditSchema>;
 
 export default function UserStatisticsViewPage({
   userId
@@ -63,6 +110,21 @@ export default function UserStatisticsViewPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<UserEditFormData>({
+    name: '',
+    ic_number: '',
+    email: '',
+    school_name: '',
+    registration_status: 'PENDING',
+    birth: '',
+    address: '',
+    parent_phone_number: '',
+    parent_email: '',
+    parent_relationship: ''
+  });
+  const [formErrors, setFormErrors] = useState<Partial<UserEditFormData>>({});
+  const [saving, setSaving] = useState(false);
 
   // Helper function to format duration in seconds to readable format
   const formatDuration = (seconds: number) => {
@@ -121,6 +183,25 @@ export default function UserStatisticsViewPage({
 
         if (response.data.success && response.data.data) {
           setData(response.data.data);
+          // Initialize edit form with current data
+          setEditForm({
+            name: response.data.data.user_info.name,
+            ic_number: response.data.data.user_info.ic_number,
+            email: response.data.data.user_info.email || '',
+            school_name: response.data.data.user_info.school_name,
+            registration_status: isValidRegistrationStatus(
+              response.data.data.user_info.registration_status
+            )
+              ? response.data.data.user_info.registration_status
+              : 'PENDING',
+            birth: response.data.data.user_info.birth || '',
+            address: response.data.data.user_info.address || '',
+            parent_phone_number:
+              response.data.data.user_info.parent?.phone_number || '',
+            parent_email: response.data.data.user_info.parent?.email || '',
+            parent_relationship:
+              response.data.data.user_info.parent?.relationship || ''
+          });
         } else {
           setError(response.data.error || 'Failed to fetch user statistics');
         }
@@ -137,6 +218,118 @@ export default function UserStatisticsViewPage({
 
     fetchUserStatistics();
   }, [userId]);
+
+  const validateForm = (): boolean => {
+    try {
+      userEditSchema.parse(editForm);
+      setFormErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Partial<UserEditFormData> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0] as keyof UserEditFormData] = err.message;
+          }
+        });
+        setFormErrors(errors);
+      }
+      return false;
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setFormErrors({});
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormErrors({});
+    // Reset form to original data
+    if (data) {
+      setEditForm({
+        name: data.user_info.name,
+        ic_number: data.user_info.ic_number,
+        email: data.user_info.email || '',
+        school_name: data.user_info.school_name,
+        registration_status: isValidRegistrationStatus(
+          data.user_info.registration_status
+        )
+          ? data.user_info.registration_status
+          : 'PENDING',
+        birth: data.user_info.birth || '',
+        address: data.user_info.address || '',
+        parent_phone_number: data.user_info.parent?.phone_number || '',
+        parent_email: data.user_info.parent?.email || '',
+        parent_relationship: data.user_info.parent?.relationship || ''
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error('Please fix the form errors before saving');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await axiosInstance.patch(`/users/${userId}`, {
+        name: editForm.name,
+        ic_number: editForm.ic_number,
+        email: editForm.email || null,
+        school_name: editForm.school_name,
+        registration_status: editForm.registration_status,
+        birth: editForm.birth || null,
+        address: editForm.address || null,
+        parent: {
+          phone_number: editForm.parent_phone_number || null,
+          email: editForm.parent_email || null,
+          relationship: editForm.parent_relationship || null
+        }
+      });
+
+      if (response.data.success) {
+        toast.success('User information updated successfully!');
+        // Update local data
+        if (data) {
+          setData({
+            ...data,
+            user_info: {
+              ...data.user_info,
+              ...editForm
+            }
+          });
+        }
+        setIsEditing(false);
+        setFormErrors({});
+      } else {
+        toast.error('Failed to update user information');
+      }
+    } catch (err: any) {
+      console.error('Error updating user:', err);
+      toast.error(
+        err.response?.data?.message || 'Failed to update user information'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof UserEditFormData, value: string) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+    // Clear error for this field when user starts typing
+    if (formErrors[field]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
+  };
 
   if (loading) {
     return (
@@ -189,10 +382,44 @@ export default function UserStatisticsViewPage({
         <div className='lg:col-span-1'>
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <User className='h-5 w-5' />
-                Student Information
-              </CardTitle>
+              <div className='flex items-center justify-between'>
+                <CardTitle className='flex items-center gap-2'>
+                  <User className='h-5 w-5' />
+                  Student Information
+                </CardTitle>
+                {!isEditing ? (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={handleEdit}
+                    className='flex items-center gap-2'
+                  >
+                    <Edit3 className='h-4 w-4' />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={handleCancel}
+                      className='flex items-center gap-2'
+                    >
+                      <X className='h-4 w-4' />
+                      Cancel
+                    </Button>
+                    <Button
+                      size='sm'
+                      onClick={handleSave}
+                      disabled={saving}
+                      className='flex items-center gap-2'
+                    >
+                      <Save className='h-4 w-4' />
+                      {saving ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent className='space-y-4'>
               {/* Avatar and basic info */}
@@ -203,17 +430,75 @@ export default function UserStatisticsViewPage({
                     {getUserInitials(user_info.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className='text-lg font-semibold'>{user_info.name}</h3>
-                  <Badge
-                    variant={
-                      user_info.registration_status === 'APPROVED'
-                        ? 'default'
-                        : 'secondary'
-                    }
-                  >
-                    {user_info.registration_status}
-                  </Badge>
+                <div className='flex-1'>
+                  {isEditing ? (
+                    <div className='space-y-3'>
+                      <div>
+                        <Label htmlFor='name' className='text-sm font-medium'>
+                          Full Name *
+                        </Label>
+                        <Input
+                          id='name'
+                          value={editForm.name}
+                          onChange={(e) =>
+                            handleInputChange('name', e.target.value)
+                          }
+                          className={`mt-1 ${formErrors.name ? 'border-red-500' : ''}`}
+                          placeholder='Enter full name'
+                        />
+                        {formErrors.name && (
+                          <p className='mt-1 text-xs text-red-500'>
+                            {formErrors.name}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor='registration_status'
+                          className='text-sm font-medium'
+                        >
+                          Registration Status *
+                        </Label>
+                        <Select
+                          value={editForm.registration_status}
+                          onValueChange={(value) =>
+                            handleInputChange('registration_status', value)
+                          }
+                        >
+                          <SelectTrigger
+                            className={`mt-1 ${formErrors.registration_status ? 'border-red-500' : ''}`}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='PENDING'>PENDING</SelectItem>
+                            <SelectItem value='APPROVED'>APPROVED</SelectItem>
+                            <SelectItem value='COMPLETED'>COMPLETED</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {formErrors.registration_status && (
+                          <p className='mt-1 text-xs text-red-500'>
+                            {formErrors.registration_status}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className='text-lg font-semibold'>
+                        {user_info.name}
+                      </h3>
+                      <Badge
+                        variant={
+                          user_info.registration_status === 'APPROVED'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {user_info.registration_status}
+                      </Badge>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -222,27 +507,205 @@ export default function UserStatisticsViewPage({
                 <div className='flex items-center gap-2'>
                   <CreditCard className='text-muted-foreground h-4 w-4' />
                   <span className='font-medium'>IC Number:</span>
-                  <span>{user_info.ic_number}</span>
+                  {isEditing ? (
+                    <div className='ml-auto flex-1'>
+                      <Input
+                        value={editForm.ic_number}
+                        onChange={(e) =>
+                          handleInputChange('ic_number', e.target.value)
+                        }
+                        className={`w-full ${formErrors.ic_number ? 'border-red-500' : ''}`}
+                        placeholder='Enter IC number'
+                      />
+                      {formErrors.ic_number && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {formErrors.ic_number}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <span>{user_info.ic_number}</span>
+                  )}
                 </div>
 
-                {user_info.email && (
-                  <div className='flex items-center gap-2'>
-                    <Mail className='text-muted-foreground h-4 w-4' />
-                    <span className='font-medium'>Email:</span>
-                    <span>{user_info.email}</span>
-                  </div>
-                )}
+                <div className='flex items-center gap-2'>
+                  <Mail className='text-muted-foreground h-4 w-4' />
+                  <span className='font-medium'>Email:</span>
+                  {isEditing ? (
+                    <div className='ml-auto flex-1'>
+                      <Input
+                        type='email'
+                        value={editForm.email}
+                        onChange={(e) =>
+                          handleInputChange('email', e.target.value)
+                        }
+                        className={`w-full ${formErrors.email ? 'border-red-500' : ''}`}
+                        placeholder='Enter email address'
+                      />
+                      {formErrors.email && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {formErrors.email}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <span>{user_info.email || 'No email provided'}</span>
+                  )}
+                </div>
 
                 <div className='flex items-center gap-2'>
                   <MapPin className='text-muted-foreground h-4 w-4' />
                   <span className='font-medium'>School:</span>
-                  <span>{user_info.school_name}</span>
+                  {isEditing ? (
+                    <div className='ml-auto flex-1'>
+                      <Input
+                        value={editForm.school_name}
+                        onChange={(e) =>
+                          handleInputChange('school_name', e.target.value)
+                        }
+                        className={`w-full ${formErrors.school_name ? 'border-red-500' : ''}`}
+                        placeholder='Enter school name'
+                      />
+                      {formErrors.school_name && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {formErrors.school_name}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <span>{user_info.school_name}</span>
+                  )}
                 </div>
 
                 <div className='flex items-center gap-2'>
                   <Calendar className='text-muted-foreground h-4 w-4' />
                   <span className='font-medium'>Joined:</span>
                   <span>{formatDate(user_info.created_at)}</span>
+                </div>
+
+                {/* Birth Date */}
+                <div className='flex items-center gap-2'>
+                  <Calendar className='text-muted-foreground h-4 w-4' />
+                  <span className='font-medium'>Birth Date:</span>
+                  {isEditing ? (
+                    <div className='ml-auto flex-1'>
+                      <Input
+                        type='date'
+                        value={editForm.birth}
+                        onChange={(e) =>
+                          handleInputChange('birth', e.target.value)
+                        }
+                        className='w-full'
+                        placeholder='Select birth date'
+                      />
+                    </div>
+                  ) : (
+                    <span>
+                      {user_info.birth
+                        ? moment(user_info.birth).format('DD/MM/YYYY')
+                        : 'Not provided'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Address */}
+                <div className='flex items-center gap-2'>
+                  <MapPin className='text-muted-foreground h-4 w-4' />
+                  <span className='font-medium'>Address:</span>
+                  {isEditing ? (
+                    <div className='ml-auto flex-1'>
+                      <Input
+                        value={editForm.address}
+                        onChange={(e) =>
+                          handleInputChange('address', e.target.value)
+                        }
+                        className='w-full'
+                        placeholder='Enter address'
+                      />
+                    </div>
+                  ) : (
+                    <span>{user_info.address || 'Not provided'}</span>
+                  )}
+                </div>
+
+                {/* Parent Information Section */}
+                <div className='border-t border-gray-200 pt-2'>
+                  <h4 className='mb-3 text-sm font-medium text-gray-700'>
+                    Parent Information
+                  </h4>
+
+                  {/* Parent Phone Number */}
+                  <div className='mb-2 flex items-center gap-2'>
+                    <CreditCard className='text-muted-foreground h-4 w-4' />
+                    <span className='text-sm font-medium'>Parent Phone:</span>
+                    {isEditing ? (
+                      <div className='ml-auto flex-1'>
+                        <Input
+                          value={editForm.parent_phone_number}
+                          onChange={(e) =>
+                            handleInputChange(
+                              'parent_phone_number',
+                              e.target.value
+                            )
+                          }
+                          className='w-full'
+                          placeholder='Enter phone number'
+                        />
+                      </div>
+                    ) : (
+                      <span className='text-sm'>
+                        {user_info.parent?.phone_number || 'Not provided'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Parent Email */}
+                  <div className='mb-2 flex items-center gap-2'>
+                    <Mail className='text-muted-foreground h-4 w-4' />
+                    <span className='text-sm font-medium'>Parent Email:</span>
+                    {isEditing ? (
+                      <div className='ml-auto flex-1'>
+                        <Input
+                          type='email'
+                          value={editForm.parent_email}
+                          onChange={(e) =>
+                            handleInputChange('parent_email', e.target.value)
+                          }
+                          className='w-full'
+                          placeholder='Enter parent email'
+                        />
+                      </div>
+                    ) : (
+                      <span className='text-sm'>
+                        {user_info.parent?.email || 'Not provided'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Parent Relationship */}
+                  <div className='flex items-center gap-2'>
+                    <User className='text-muted-foreground h-4 w-4' />
+                    <span className='text-sm font-medium'>Relationship:</span>
+                    {isEditing ? (
+                      <div className='ml-auto flex-1'>
+                        <Input
+                          value={editForm.parent_relationship}
+                          onChange={(e) =>
+                            handleInputChange(
+                              'parent_relationship',
+                              e.target.value
+                            )
+                          }
+                          className='w-full'
+                          placeholder='e.g., Father, Mother, Guardian'
+                        />
+                      </div>
+                    ) : (
+                      <span className='text-sm'>
+                        {user_info.parent?.relationship || 'Not provided'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>

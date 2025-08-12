@@ -35,6 +35,13 @@ export interface UserInfo {
   school_name: string;
   registration_status: string;
   created_at: string;
+  birth?: string;
+  address?: string;
+  parent?: {
+    phone_number?: string;
+    email?: string;
+    relationship?: string;
+  };
 }
 
 export interface Book {

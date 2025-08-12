@@ -4,6 +4,7 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { Text } from 'lucide-react';
 import { CellAction } from './cell-action';
 import { User } from '@/constants/data';
+import moment from 'moment';
 
 // Base columns that are common to both views (excluding actions)
 const getBaseColumns = (): ColumnDef<User>[] => [
@@ -68,7 +69,11 @@ const registeredUserColumns: ColumnDef<User>[] = [
     header: ({ column }: { column: Column<User, unknown> }) => (
       <DataTableColumnHeader column={column} title='Birth Date' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<User['birth']>()}</div>
+    cell: ({ cell }) => {
+      const birth = cell.getValue<User['birth']>();
+      if (!birth) return <div>N/A</div>;
+      return <div>{moment(birth).format('DD/MM/YYYY')}</div>;
+    }
   },
   {
     id: 'address',
