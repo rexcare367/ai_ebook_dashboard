@@ -7,12 +7,8 @@ import { useDataTable } from '@/hooks/use-data-table';
 
 import { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
+import { AdminTableParams } from '@/types';
 
-interface AdminTableParams<TData, TValue> {
-  data: TData[];
-  totalItems: number;
-  columns: ColumnDef<TData, TValue>[];
-}
 export function AdminTable<TData, TValue>({
   data,
   totalItems,

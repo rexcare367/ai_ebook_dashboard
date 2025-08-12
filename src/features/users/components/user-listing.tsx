@@ -22,10 +22,7 @@ import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import { useUserStore } from '@/utils/user-store';
 import { Card, CardContent } from '@/components/ui/card';
-
-interface UserListingPageProps {
-  showRegisteredOnly?: boolean;
-}
+import { UserListingPageProps } from '@/types';
 
 export default function UserListingPage({
   showRegisteredOnly = false

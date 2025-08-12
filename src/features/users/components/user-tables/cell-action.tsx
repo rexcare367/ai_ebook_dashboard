@@ -18,13 +18,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import axiosInstance from '@/lib/axios';
+import { CellActionProps } from '@/types';
 
-interface CellActionProps {
-  data: User;
-  showStatisticsAction?: boolean;
-}
-
-export const CellAction: React.FC<CellActionProps> = ({
+export const CellAction: React.FC<CellActionProps<User>> = ({
   data,
   showStatisticsAction = false
 }) => {

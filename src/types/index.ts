@@ -57,3 +57,6 @@ export interface IUser {
     updated_at: string;
   } | null;
 }
+
+// Export all feature interfaces
+export * from './features';

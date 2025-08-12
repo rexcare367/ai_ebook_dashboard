@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,7 +21,6 @@ import {
   Mail,
   CreditCard
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -41,62 +41,13 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination';
-
-interface UserInfo {
-  id: string;
-  ic_number: string;
-  name: string;
-  email: string | null;
-  avatar_url: string | null;
-  school_id: string;
-  school_name: string;
-  registration_status: string;
-  created_at: string;
-}
-
-interface Book {
-  id: string;
-  title: string;
-  file_key: string;
-  url: string;
-  thumb_url: string;
-  thumbnail: string;
-  assistant_id: string;
-  file_id: string;
-  vector_store_id: string;
-  language: string;
-  genres: string[];
-  author: string | null;
-  pages: number | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ReadingStatistics {
-  total_read_books_count: number;
-  malay_read_books_count: number;
-  english_read_books_count: number;
-  mandarin_read_books_count: number;
-  total_reading_duration: number;
-  read_books_list: Book[];
-  last_book_read_timestamp: string | null;
-  language_breakdown: {
-    [key: string]: number;
-  };
-}
-
-interface UserStatisticsData {
-  user_info: UserInfo;
-  reading_statistics: ReadingStatistics;
-}
-
-interface ApiResponse {
-  success: boolean;
-  data: UserStatisticsData;
-  message: string;
-  error: string | null;
-}
+import {
+  UserInfo,
+  Book,
+  ReadingStatistics,
+  UserStatisticsData,
+  ApiResponse
+} from '@/types';
 
 type UserStatisticsViewPageProps = {
   userId: string;

@@ -13,12 +13,9 @@ import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import axiosInstance from '@/lib/axios';
+import { CellActionProps } from '@/types';
 
-interface CellActionProps {
-  data: Admin;
-}
-
-export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+export const CellAction: React.FC<CellActionProps<Admin>> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
