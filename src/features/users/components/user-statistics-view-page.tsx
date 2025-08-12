@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,7 +20,6 @@ import {
 import {
   BookOpen,
   Clock,
-  Trophy,
   Globe2,
   AlertCircle,
   ArrowLeft,
@@ -54,13 +53,7 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination';
-import {
-  UserInfo,
-  Book,
-  ReadingStatistics,
-  UserStatisticsData,
-  ApiResponse
-} from '@/types';
+import { UserStatisticsData, ApiResponse } from '@/types';
 import * as z from 'zod';
 
 type UserStatisticsViewPageProps = {
@@ -123,7 +116,9 @@ export default function UserStatisticsViewPage({
     parent_email: '',
     parent_relationship: ''
   });
-  const [formErrors, setFormErrors] = useState<Partial<UserEditFormData>>({});
+  const [formErrors, setFormErrors] = useState<
+    Partial<Record<keyof UserEditFormData, string>>
+  >({});
   const [saving, setSaving] = useState(false);
 
   // Helper function to format duration in seconds to readable format
@@ -206,7 +201,6 @@ export default function UserStatisticsViewPage({
           setError(response.data.error || 'Failed to fetch user statistics');
         }
       } catch (err: any) {
-        console.error('Error fetching user statistics:', err);
         setError(
           err.response?.data?.message || 'Failed to fetch user statistics'
         );
@@ -226,10 +220,11 @@ export default function UserStatisticsViewPage({
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors: Partial<UserEditFormData> = {};
+        const errors: Partial<Record<keyof UserEditFormData, string>> = {};
         error.errors.forEach((err) => {
-          if (err.path[0]) {
-            errors[err.path[0] as keyof UserEditFormData] = err.message;
+          const field = err.path?.[0];
+          if (typeof field === 'string') {
+            errors[field as keyof UserEditFormData] = err.message;
           }
         });
         setFormErrors(errors);
@@ -298,7 +293,19 @@ export default function UserStatisticsViewPage({
             ...data,
             user_info: {
               ...data.user_info,
-              ...editForm
+              name: editForm.name,
+              ic_number: editForm.ic_number,
+              email: editForm.email || null,
+              school_name: editForm.school_name,
+              registration_status: editForm.registration_status,
+              birth: editForm.birth || undefined,
+              address: editForm.address || undefined,
+              parent: {
+                ...(data.user_info.parent || {}),
+                phone_number: editForm.parent_phone_number || undefined,
+                email: editForm.parent_email || undefined,
+                relationship: editForm.parent_relationship || undefined
+              }
             }
           });
         }
@@ -308,7 +315,6 @@ export default function UserStatisticsViewPage({
         toast.error('Failed to update user information');
       }
     } catch (err: any) {
-      console.error('Error updating user:', err);
       toast.error(
         err.response?.data?.message || 'Failed to update user information'
       );
