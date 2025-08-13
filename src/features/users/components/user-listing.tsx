@@ -261,7 +261,7 @@ export default function UserListingPage({
         <>
           {/* School Manager View */}
           {isSchoolManager && userSchool && (
-            <Card className='border-blue-200 bg-blue-50'>
+            <Card className='border-border bg-muted/50'>
               <CardContent>
                 <div className='grid grid-cols-1 gap-4 text-sm md:grid-cols-3'>
                   <div>

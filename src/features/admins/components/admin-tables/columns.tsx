@@ -79,34 +79,13 @@ export const columns: ColumnDef<Admin>[] = [
           {role}
         </Badge>
       );
-    },
-    enableColumnFilter: true,
-    meta: {
-      label: 'Role',
-      variant: 'multiSelect',
-      options: CATEGORY_OPTIONS
     }
-  },
-  {
-    id: 'current_role',
-    accessorKey: 'current_role',
-    header: ({ column }: { column: Column<Admin, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Current Role' />
-    ),
-    cell: ({ cell }) => {
-      const currentRole = cell.getValue<Admin['current_role']>();
-      return (
-        <Badge variant='outline' className='capitalize'>
-          {currentRole}
-        </Badge>
-      );
-    },
-    enableColumnFilter: true,
-    meta: {
-      label: 'Current Role',
-      variant: 'multiSelect',
-      options: CATEGORY_OPTIONS
-    }
+    // enableColumnFilter: true,
+    // meta: {
+    //   label: 'Role',
+    //   variant: 'multiSelect',
+    //   options: CATEGORY_OPTIONS
+    // }
   },
   {
     accessorKey: 'status',

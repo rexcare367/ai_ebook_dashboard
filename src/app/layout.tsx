@@ -16,8 +16,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'AI Ebook Library',
+  description: 'AI Ebook Library Admin'
 };
 
 export const viewport: Viewport = {

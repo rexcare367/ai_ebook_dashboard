@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useUserStore } from '@/utils/user-store';
 import axiosInstance from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -135,55 +135,60 @@ export default function Leaderboard() {
   ]);
 
   // Fetch leaderboard data
-  const fetchLeaderboard = async (
-    page: number = 1,
-    append: boolean = false
-  ) => {
-    const schoolId = isSchoolManager ? userSchool?.id : selectedSchoolId;
+  const fetchLeaderboard = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      const schoolId = isSchoolManager ? userSchool?.id : selectedSchoolId;
 
-    if (!schoolId) {
-      if (isSchoolManager) {
-        toast.error('No school assigned to your account');
-      } else {
-        toast.error('Please select a school');
-      }
-      return;
-    }
-
-    try {
-      const response = await axiosInstance.get(
-        `/schools/${schoolId}/leaderboard`,
-        {
-          params: {
-            page,
-            limit: 10
-          }
-        }
-      );
-
-      if (response.data.success) {
-        const data = response.data.data;
-
-        if (append && leaderboardData) {
-          setLeaderboardData({
-            ...data,
-            leaderboard: [...leaderboardData.leaderboard, ...data.leaderboard]
-          });
+      if (!schoolId) {
+        if (isSchoolManager) {
+          toast.error('No school assigned to your account');
         } else {
-          setLeaderboardData(data);
+          toast.error('Please select a school');
         }
-
-        setHasMore(data.leaderboard.length === 10);
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch leaderboard');
+        return;
       }
-    } catch (error: any) {
-      console.error('Failed to fetch leaderboard:', error);
-      toast.error(
-        error.response?.data?.message || 'Failed to fetch leaderboard data'
-      );
-    }
-  };
+
+      try {
+        const response = await axiosInstance.get(
+          `/schools/${schoolId}/leaderboard`,
+          {
+            params: {
+              page,
+              limit: 10
+            }
+          }
+        );
+
+        if (response.data.success) {
+          const data = response.data.data as LeaderboardData;
+
+          if (append) {
+            setLeaderboardData((prev) =>
+              prev
+                ? {
+                    ...data,
+                    leaderboard: [...prev.leaderboard, ...data.leaderboard]
+                  }
+                : data
+            );
+          } else {
+            setLeaderboardData(data);
+          }
+
+          setHasMore(data.leaderboard.length === 10);
+        } else {
+          throw new Error(
+            response.data.message || 'Failed to fetch leaderboard'
+          );
+        }
+      } catch (error: any) {
+        toast.error(
+          error.response?.data?.message || 'Failed to fetch leaderboard data'
+        );
+      }
+    },
+    [isSchoolManager, selectedSchoolId, userSchool?.id]
+  );
 
   // Initial data fetch
   useEffect(() => {
@@ -194,7 +199,7 @@ export default function Leaderboard() {
       setLoading(true);
       fetchLeaderboard(1, false).finally(() => setLoading(false));
     }
-  }, [isSchoolManager, userSchool?.id, selectedSchoolId]);
+  }, [isSchoolManager, userSchool?.id, selectedSchoolId, fetchLeaderboard]);
 
   // Load more data
   const loadMore = async () => {
@@ -223,13 +228,13 @@ export default function Leaderboard() {
   const getRankBackgroundColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-yellow-100 border-yellow-300';
+        return 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700';
       case 2:
-        return 'bg-purple-100 border-purple-300';
+        return 'bg-purple-100 border-purple-300 dark:bg-purple-900/30 dark:border-purple-700';
       case 3:
-        return 'bg-orange-100 border-orange-300';
+        return 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-700';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-50 border-gray-200 dark:bg-gray-900/40 dark:border-gray-700';
     }
   };
 
@@ -237,13 +242,13 @@ export default function Leaderboard() {
   const getTextColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'text-yellow-700';
+        return 'text-yellow-700 dark:text-yellow-300';
       case 2:
-        return 'text-purple-700';
+        return 'text-purple-700 dark:text-purple-300';
       case 3:
-        return 'text-orange-700';
+        return 'text-orange-700 dark:text-orange-300';
       default:
-        return 'text-gray-700';
+        return 'text-gray-700 dark:text-gray-200';
     }
   };
 
@@ -271,7 +276,7 @@ export default function Leaderboard() {
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
         <div>
           {leaderboardData && (
-            <p className='text-sm text-gray-600 sm:text-base'>
+            <p className='text-sm text-gray-600 sm:text-base dark:text-gray-300'>
               {leaderboardData.school_name} • {leaderboardData.total_count}{' '}
               students
             </p>
@@ -354,8 +359,8 @@ export default function Leaderboard() {
 
       {/* Alert when no school is selected (only for admin users) */}
       {!isSchoolManager && !selectedSchoolId && !loading && (
-        <div className='rounded-lg border border-yellow-200 bg-yellow-50 p-4'>
-          <p className='text-yellow-800'>
+        <div className='rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-950/30'>
+          <p className='text-yellow-800 dark:text-yellow-300'>
             Please select a school to view the leaderboard.
           </p>
         </div>
@@ -365,7 +370,7 @@ export default function Leaderboard() {
       {leaderboardData && leaderboardData.leaderboard.length > 0 && (
         <div className='space-y-2'>
           {/* Header Row - Hidden on mobile */}
-          <div className='hidden gap-4 rounded-lg bg-gray-50 px-4 py-3 font-medium text-gray-700 md:grid md:grid-cols-[80px_1fr_1fr_120px_120px]'>
+          <div className='hidden gap-4 rounded-lg bg-gray-50 px-4 py-3 font-medium text-gray-700 md:grid md:grid-cols-[80px_1fr_1fr_120px_120px] dark:bg-gray-800 dark:text-gray-200'>
             <div>Rank</div>
             <div>Name</div>
             <div>School Name</div>
@@ -462,7 +467,7 @@ export default function Leaderboard() {
                             <CheckCircle className='h-4 w-4 text-blue-500' />
                           </div>
                           <div
-                            className={`text-sm text-gray-600 ${getTextColor(entry.rank)}`}
+                            className={`text-sm text-gray-600 dark:text-gray-300 ${getTextColor(entry.rank)}`}
                           >
                             {leaderboardData?.school_name || 'Unknown School'}
                           </div>
@@ -472,7 +477,7 @@ export default function Leaderboard() {
                   </div>
 
                   {/* Bottom row with scores */}
-                  <div className='flex items-center justify-between border-t border-gray-200 pt-2'>
+                  <div className='flex items-center justify-between border-t border-gray-200 pt-2 dark:border-gray-700'>
                     <div className='text-center'>
                       <div className='text-xs font-medium text-gray-500'>
                         Quiz Score

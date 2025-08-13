@@ -206,19 +206,21 @@ export function SchoolSelectionDialog({
 
         <div className='space-y-4'>
           {currentRole === 'school_manager' && (
-            <Card className='border-blue-200 bg-blue-50'>
+            <Card className='border-border bg-muted/50'>
               <CardHeader>
-                <CardTitle className='text-blue-800'>
+                <CardTitle className='text-foreground'>
                   Currently Managing
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='font-medium'>
+                    <p className='text-foreground font-medium'>
                       {user.school?.name || 'Unknown School'}
                     </p>
-                    <p className='text-sm text-blue-600'>School Manager</p>
+                    <p className='text-muted-foreground text-sm'>
+                      School Manager
+                    </p>
                   </div>
                   <div className='flex gap-2'>
                     <Button
@@ -272,24 +274,26 @@ export function SchoolSelectionDialog({
                   .map((school) => (
                     <Card
                       key={school.id}
-                      className='cursor-pointer transition-colors hover:bg-gray-50'
+                      className='hover:bg-muted/50 border-border cursor-pointer transition-colors'
                       onClick={() => handleSchoolSelect(school)}
                     >
                       <CardContent className='p-4'>
                         <div className='flex items-center justify-between'>
                           <div className='flex items-center space-x-3'>
-                            <Building2 className='h-5 w-5 text-gray-500' />
+                            <Building2 className='text-muted-foreground h-5 w-5' />
                             <div>
-                              <h4 className='font-medium'>{school.name}</h4>
-                              <p className='text-sm text-gray-500'>
+                              <h4 className='text-foreground font-medium'>
+                                {school.name}
+                              </h4>
+                              <p className='text-muted-foreground text-sm'>
                                 {school.city}, {school.state}
                               </p>
                             </div>
                           </div>
                           <div className='flex items-center space-x-2'>
                             <div className='flex items-center space-x-1'>
-                              <Users className='h-4 w-4 text-gray-400' />
-                              <span className='text-sm text-gray-500'>
+                              <Users className='text-muted-foreground h-4 w-4' />
+                              <span className='text-muted-foreground text-sm'>
                                 {school.students_count} students
                               </span>
                             </div>

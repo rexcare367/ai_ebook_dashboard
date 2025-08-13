@@ -7,8 +7,8 @@ import { cookies } from 'next/headers';
 import DashboardUserProvider from '@/components/layout/dashboard-user-provider';
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn Dashboard Starter',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'AI Ebook Library',
+  description: 'AI Ebook Library Admin'
 };
 
 export default async function DashboardLayout({

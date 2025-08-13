@@ -142,15 +142,6 @@ export const navItems: NavItem[] = [
     permission: ['admin']
   },
   {
-    title: 'School Statistics',
-    url: '/dashboard/analysis',
-    icon: 'user',
-    shortcut: ['s', 's'],
-    isActive: false,
-    items: [],
-    permission: ['school_manager']
-  },
-  {
     title: 'Students',
     url: '#',
     icon: 'user',

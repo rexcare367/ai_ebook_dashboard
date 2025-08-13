@@ -635,8 +635,8 @@ export default function UserStatisticsViewPage({
                 </div>
 
                 {/* Parent Information Section */}
-                <div className='border-t border-gray-200 pt-2'>
-                  <h4 className='mb-3 text-sm font-medium text-gray-700'>
+                <div className='border-t border-gray-200 pt-2 dark:border-gray-700'>
+                  <h4 className='mb-3 text-sm font-medium text-gray-700 dark:text-gray-300'>
                     Parent Information
                   </h4>
 
@@ -725,7 +725,7 @@ export default function UserStatisticsViewPage({
             <Card>
               <CardContent className='p-6'>
                 <div className='flex items-center space-x-2'>
-                  <BookOpen className='h-8 w-8 text-blue-600' />
+                  <BookOpen className='text-muted-foreground h-8 w-8' />
                   <div>
                     <p className='text-2xl font-bold'>
                       {reading_statistics.total_read_books_count}
@@ -741,7 +741,7 @@ export default function UserStatisticsViewPage({
             <Card>
               <CardContent className='p-6'>
                 <div className='flex items-center space-x-2'>
-                  <Clock className='h-8 w-8 text-green-600' />
+                  <Clock className='text-muted-foreground h-8 w-8' />
                   <div>
                     <p className='text-2xl font-bold'>
                       {formatDuration(
@@ -759,7 +759,7 @@ export default function UserStatisticsViewPage({
             <Card>
               <CardContent className='p-6'>
                 <div className='flex items-center space-x-2'>
-                  <Calendar className='h-8 w-8 text-purple-600' />
+                  <Calendar className='text-muted-foreground h-8 w-8' />
                   <div>
                     <p className='text-sm font-medium'>Last Read</p>
                     <p className='text-muted-foreground text-sm'>
@@ -781,23 +781,25 @@ export default function UserStatisticsViewPage({
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                <div className='rounded-lg bg-blue-50 p-4 text-center'>
-                  <p className='text-2xl font-bold text-blue-600'>
+                <div className='bg-muted/50 rounded-lg p-4 text-center'>
+                  <p className='text-2xl font-bold'>
                     {reading_statistics.english_read_books_count}
                   </p>
-                  <p className='text-sm text-blue-800'>English Books</p>
+                  <p className='text-muted-foreground text-sm'>English Books</p>
                 </div>
-                <div className='rounded-lg bg-red-50 p-4 text-center'>
-                  <p className='text-2xl font-bold text-red-600'>
+                <div className='bg-muted/50 rounded-lg p-4 text-center'>
+                  <p className='text-2xl font-bold'>
                     {reading_statistics.malay_read_books_count}
                   </p>
-                  <p className='text-sm text-red-800'>Malay Books</p>
+                  <p className='text-muted-foreground text-sm'>Malay Books</p>
                 </div>
-                <div className='rounded-lg bg-yellow-50 p-4 text-center'>
-                  <p className='text-2xl font-bold text-yellow-600'>
+                <div className='bg-muted/50 rounded-lg p-4 text-center'>
+                  <p className='text-2xl font-bold'>
                     {reading_statistics.mandarin_read_books_count}
                   </p>
-                  <p className='text-sm text-yellow-800'>Mandarin Books</p>
+                  <p className='text-muted-foreground text-sm'>
+                    Mandarin Books
+                  </p>
                 </div>
               </div>
             </CardContent>
