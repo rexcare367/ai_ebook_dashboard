@@ -59,13 +59,8 @@ export const useDashboardStats = () => {
   };
 
   useEffect(() => {
-    if (user?.school_id) {
-      fetchStats();
-    } else {
-      // If no user or school_id, still set loading to false
-      setLoading(false);
-    }
-  }, [user?.school_id]);
+    fetchStats();
+  }, []);
 
   const refetch = () => {
     fetchStats();
