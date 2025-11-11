@@ -117,7 +117,7 @@ export const navItems: NavItem[] = [
   {
     title: 'Admins',
     url: '/dashboard/admin',
-    icon: 'user',
+    icon: 'admin',
     shortcut: ['a', 'a'],
     isActive: false,
     items: [],
@@ -126,7 +126,7 @@ export const navItems: NavItem[] = [
   {
     title: 'Statistics',
     url: '/dashboard/analysis',
-    icon: 'user',
+    icon: 'statistics',
     shortcut: ['s', 's'],
     isActive: false,
     items: [],

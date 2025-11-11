@@ -127,8 +127,8 @@ export default function CustomSignInForm() {
       } else {
         setGeneralError('Sign in failed. Please try again.');
       }
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!isLoaded) return null;
