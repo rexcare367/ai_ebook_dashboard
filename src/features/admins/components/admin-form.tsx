@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Admin } from '@/constants/data';
+import { Admin, School } from '@/constants/data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -51,15 +51,25 @@ export default function AdminForm({
   initialData: Admin | null;
   pageTitle: string;
 }) {
-  const [schools, setSchools] = useState<Array<string>>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Fetch schools list
     axiosInstance
-      .get('/admins/schools')
+      .get('/schools', {
+        params: {
+          page: 1,
+          perPage: 100, // Get all schools
+          status: 'active'
+        }
+      })
       .then((res) => {
-        setSchools(res.data.data.schools);
+        if (res.data.success) {
+          setSchools(res.data.data.schools || []);
+        } else {
+          throw new Error('Failed to fetch schools');
+        }
       })
       .catch((err) => {
         console.error('Failed to fetch schools:', err);
@@ -245,6 +255,45 @@ export default function AdminForm({
               />
               <FormField
                 control={form.control}
+                name='school'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School</FormLabel>
+                    <Select
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        // Find the selected school and set the school_id
+                        const selectedSchool = schools.find(
+                          (school) => school.name === value
+                        );
+                        if (selectedSchool) {
+                          form.setValue('school_id', selectedSchool.id);
+                        }
+                      }}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select school' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {schools &&
+                          schools.map((school, i) => (
+                            <SelectItem key={i} value={school.name}>
+                              {school.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name='school_id'
                 render={({ field }) => (
                   <FormItem>
@@ -253,7 +302,7 @@ export default function AdminForm({
                       <Input
                         placeholder='Enter school ID'
                         {...field}
-                        disabled={isLoading}
+                        disabled={true}
                       />
                     </FormControl>
                     <FormMessage />
@@ -280,35 +329,6 @@ export default function AdminForm({
                         <SelectItem value='active'>Active</SelectItem>
                         <SelectItem value='inactive'>Inactive</SelectItem>
                         <SelectItem value='pending'>Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='school'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>School</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select school' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {schools &&
-                          schools.map((school, i) => (
-                            <SelectItem key={i} value={school}>
-                              {school}
-                            </SelectItem>
-                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
