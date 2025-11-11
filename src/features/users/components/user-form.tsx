@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { User } from '@/constants/data';
+import { School, User } from '@/constants/data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -31,7 +31,8 @@ import { format, parseISO } from 'date-fns';
 const formSchema = z.object({
   name: z.string(),
   ic_number: z.string(),
-  school_id: z.string()
+  school: z.string(),
+  school_id: z.string().optional()
 });
 
 export default function UserForm({
@@ -41,19 +42,54 @@ export default function UserForm({
   initialData: User | null;
   pageTitle: string;
 }) {
+  const [schools, setSchools] = useState<School[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const defaultValues = {
     name: initialData?.name || '',
     ic_number: initialData?.ic_number || '',
-    school_id: initialData?.school_id || '',
-    registration_status: 'active'
+    school: '',
+    school_id: initialData?.school_id || ''
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     values: defaultValues
   });
+
+  useEffect(() => {
+    // Fetch schools list
+    axiosInstance
+      .get('/schools', {
+        params: {
+          page: 1,
+          perPage: 100, // Get all schools
+          status: 'active'
+        }
+      })
+      .then((res) => {
+        if (res.data.success) {
+          const schoolsList = res.data.data.schools || [];
+          setSchools(schoolsList);
+
+          // If we have initialData with school_id, find and set the school name
+          if (initialData?.school_id) {
+            const userSchool = schoolsList.find(
+              (school: School) => school.id === initialData.school_id
+            );
+            if (userSchool) {
+              form.setValue('school', userSchool.name);
+            }
+          }
+        } else {
+          throw new Error('Failed to fetch schools');
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch schools:', err);
+        toast.error('Failed to load schools list');
+      });
+  }, [initialData, form]);
 
   // Helper function to format datetime
   const formatDateTime = (dateString: string | null) => {
@@ -70,13 +106,13 @@ export default function UserForm({
 
     try {
       if (initialData) {
-        // Update school
+        // Update user
         await axiosInstance.patch(`/users/by_id/${initialData.id}`, values);
         toast.success('User updated successfully!', {
           description: `${values.name} has been updated in the system.`
         });
       } else {
-        // Create school
+        // Create user
         await axiosInstance.post(`/users`, values);
         toast.success('User created successfully!', {
           description: `${values.name} has been added to the system.`
@@ -88,7 +124,7 @@ export default function UserForm({
       const errorMessage =
         err.response?.data?.message || 'An unexpected error occurred';
       toast.error(
-        initialData ? 'Failed to update school' : 'Failed to create school',
+        initialData ? 'Failed to update user' : 'Failed to create user',
         {
           description: errorMessage
         }
@@ -123,7 +159,7 @@ export default function UserForm({
                     <FormLabel>User Name</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Enter school name'
+                        placeholder='Enter user name'
                         {...field}
                         disabled={isLoading}
                       />
@@ -137,10 +173,10 @@ export default function UserForm({
                 name='ic_number'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ic_number</FormLabel>
+                    <FormLabel>IC Number</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Enter ic_number'
+                        placeholder='Enter IC number'
                         {...field}
                         disabled={isLoading}
                       />
@@ -151,17 +187,38 @@ export default function UserForm({
               />
               <FormField
                 control={form.control}
-                name='school_id'
+                name='school'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>school_id</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Enter school name'
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
+                    <FormLabel>School</FormLabel>
+                    <Select
+                      onValueChange={(value: string) => {
+                        field.onChange(value);
+                        // Find the selected school and set the school_id
+                        const selectedSchool = schools.find(
+                          (school) => school.name === value
+                        );
+                        if (selectedSchool) {
+                          form.setValue('school_id', selectedSchool.id);
+                        }
+                      }}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select school' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {schools &&
+                          schools.map((school, i) => (
+                            <SelectItem key={i} value={school.name}>
+                              {school.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
